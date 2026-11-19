@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "ClaudeShadow v3",
+  "version": "3.0",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "cookies",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://*.claude.ai/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://*.claude.ai/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

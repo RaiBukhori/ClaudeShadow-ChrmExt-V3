@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClaudeShadow v3</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      width: 100%;
+      min-width: 280px;
+      max-width: 340px;
+      margin: 0 auto;
+      background: #18181b;
+      color: #f4f4f5;
+      padding: 10px;
+      user-select: none;
+      position: relative;
+    }
+
+    .section-title {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #a1a1aa;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* 1 Baris Exporter: 50% Copy, 50% Download TXT */
+    .exporter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .export-btn {
+      background: #27272a;
+      color: #f4f4f5;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 8px 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .export-btn:hover:not(:disabled) {
+      background: #3f3f46;
+      border-color: #d97757;
+    }
+
+    .export-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .export-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .divider {
+      height: 1px;
+      background: #27272a;
+      margin: 9px 0;
+    }
+
+    /* Grid Kotak-Kotak Super Rapat (4 Kolom) agar muat banyak akun */
+    .account-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      max-height: 190px;
+      overflow-y: auto;
+      padding-right: 1px;
+    }
+
+    .account-grid::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .account-grid::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 4px;
+    }
+
+    .acc-box {
+      height: 46px;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 4px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.12s ease;
+      text-align: center;
+    }
+
+    .acc-box:hover {
+      background: #323236;
+      border-color: #71717a;
+    }
+
+    .acc-box.active {
+      border-color: #d97757;
+      background: rgba(217, 119, 87, 0.16);
+    }
+
+    .acc-avatar {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #d97757;
+      color: #fff;
+      font-weight: 700;
+      font-size: 9.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+    }
+
+    .acc-name {
+      font-size: 9.5px;
+      font-weight: 500;
+      color: #e4e4e7;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+    }
+
+    /* Tombol Hapus Mini di Pojok Kanan Atas Kotak Akun (Selalu tampil agar bisa ditap di Android) */
+    .acc-del {
+      position: absolute;
+      top: 1px;
+      right: 1px;
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
+      background: rgba(24, 24, 27, 0.55);
+      color: #a1a1aa;
+      border: none;
+      font-size: 11px;
+      line-height: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .acc-del:hover,
+    .acc-del:active {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* Kotak Add Acc */
+    .acc-box.add-btn {
+      border-style: dashed;
+      border-color: #52525b;
+      background: transparent;
+      color: #a1a1aa;
+    }
+
+    .acc-box.add-btn:hover,
+    .acc-box.add-btn:active {
+      border-color: #d97757;
+      color: #d97757;
+      background: rgba(217, 119, 87, 0.08);
+    }
+
+    .add-icon {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 1px;
+    }
+
+    .save-current-btn {
+      background: rgba(217, 119, 87, 0.12);
+      border: 1px solid rgba(217, 119, 87, 0.35);
+      border-radius: 4px;
+      padding: 2px 6px;
+      color: #d97757;
+      font-size: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .save-current-btn:hover,
+    .save-current-btn:active {
+      background: rgba(217, 119, 87, 0.25);
+    }
+
+    /* Panel Inline Modal (Pengganti prompt/confirm agar jalan di Android & Desktop) */
+    .inline-modal {
+      display: none;
+      background: #27272a;
+      border: 1px solid #d97757;
+      border-radius: 7px;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+
+    .inline-modal.show {
+      display: block;
+    }
+
+    .modal-label {
+      font-size: 11px;
+      color: #e4e4e7;
+      margin-bottom: 6px;
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    .modal-input {
+      width: 100%;
+      background: #18181b;
+      border: 1px solid #52525b;
+      border-radius: 5px;
+      color: #fff;
+      padding: 6px 8px;
+      font-size: 11.5px;
+      margin-bottom: 6px;
+      outline: none;
+    }
+
+    .modal-input:focus {
+      border-color: #d97757;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+
+    .modal-btn.primary {
+      background: #d97757;
+      color: #fff;
+    }
+
+    .modal-btn.secondary {
+      background: #3f3f46;
+      color: #e4e4e7;
+    }
+
+    /* Baris Expor / Impor Extension Data */
+    .data-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .data-btn {
+      background: #202024;
+      color: #d4d4d8;
+      border: 1px solid #3f3f46;
+      border-radius: 6px;
+      padding: 6px;
+      font-size: 10.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .data-btn:hover,
+    .data-btn:active {
+      background: #27272a;
+      border-color: #d97757;
+      color: #fff;
+    }
+
+    .data-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 30px;
+    }
+
+    .data-row + .data-row {
+      margin-top: 6px;
+    }
+
+    /* Tombol "Impor File": input file asli ditaruh transparan di atas tombol
+       (bukan display:none) supaya bisa di-tap langsung di Android & Desktop */
+    .file-label {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .file-label input[type="file"] {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 100px;
+    }
+
+    .file-label input[type="file"]:disabled {
+      pointer-events: none;
+    }
+
+    .paste-area {
+      width: 100%;
+      min-height: 84px;
+      resize: vertical;
+      background: #18181b;
+      border: 1px solid #52525b;
+      border-radius: 5px;
+      color: #fff;
+      padding: 6px 8px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 10.5px;
+      margin-bottom: 6px;
+      outline: none;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .paste-area:focus {
+      border-color: #d97757;
+    }
+
+    #pastePanel {
+      margin-top: 8px;
+      margin-bottom: 0;
+    }
+
+    body.is-tab {
+      max-width: 460px;
+      margin-top: 18px;
+    }
+
+    #statusMsg {
+      margin-top: 7px;
+      font-size: 10.5px;
+      color: #a1a1aa;
+      text-align: center;
+      min-height: 14px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Bagian Atas: Exporter 1 Baris -->
+  <div class="section-title">Deep Exporter</div>
+  <div class="exporter-row">
+    <button id="copyBtn" class="export-btn">Copy</button>
+    <button id="downloadBtn" class="export-btn">Download TXT</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Bagian Tengah: Multi Account Manager (Kotak-Kotak Kecil 4 Kolom) -->
+  <div class="section-title">
+    <span id="accTitleCount">Accounts</span>
+    <button id="saveCurrentBtn" class="save-current-btn" title="Simpan sesi akun yang sedang login">+ Simpan Sesi Ini</button>
+  </div>
+
+  <!-- Inline Dialog (Pengganti prompt & confirm supaya tidak diblokir Android Titanium) -->
+  <div id="inlineModal" class="inline-modal">
+    <div id="modalLabel" class="modal-label"></div>
+    <input id="modalInput" type="text" class="modal-input" placeholder="Nama akun (misal: Kerja / Pribadi)" />
+    <div class="modal-actions">
+      <button id="modalCancelBtn" class="modal-btn secondary">Batal</button>
+      <button id="modalConfirmBtn" class="modal-btn primary">Simpan</button>
+    </div>
+  </div>
+
+  <div id="accountGrid" class="account-grid">
+    <!-- Kotak akun dan tombol Add Acc dirender dari popup.js -->
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Bagian Bawah: Expor / Impor Extension Data -->
+  <div class="section-title">Extension Data</div>
+  <div class="data-row">
+    <button id="exportDataBtn" class="data-btn" title="Backup semua akun & sesi ke file JSON">Expor File</button>
+    <label id="importFileLabel" class="data-btn file-label" title="Pulihkan akun & sesi dari file JSON">
+      Impor File
+      <input type="file" id="importFileInput" />
+    </label>
+  </div>
+  <div class="data-row">
+    <button id="copyBackupBtn" class="data-btn" title="Salin backup sebagai teks (tanpa file)">Copy Backup</button>
+    <button id="pasteImportBtn" class="data-btn" title="Impor dengan menempel teks backup (tanpa file picker)">Tempel Impor</button>
+  </div>
+
+  <!-- Panel tempel teks backup: cara impor yang tidak butuh file picker -->
+  <div id="pastePanel" class="inline-modal">
+    <div class="modal-label">Tempel isi backup (JSON) di bawah ini:</div>
+    <textarea id="pasteArea" class="paste-area" spellcheck="false" autocomplete="off" placeholder='{"app":"ClaudeShadow v3","accounts":[...]}'></textarea>
+    <div class="modal-actions">
+      <button id="pasteCancelBtn" class="modal-btn secondary">Batal</button>
+      <button id="pasteConfirmBtn" class="modal-btn primary">Impor</button>
+    </div>
+  </div>
+
+  <div id="statusMsg"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
